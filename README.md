@@ -102,6 +102,7 @@ The default features are:
 * time: High-accuracy time measuring.
 * toml: TOML parser.
 * url: Faster replacements for `url_encode` and `url_decode`.
+* random: A lot of distribution functions.
 
 Additional features are:
 * batchnoise: Discrete Batched Perlin-like Noise, fast and multi-threaded - sent over once instead of having to query for every tile.

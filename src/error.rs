@@ -61,6 +61,9 @@ pub enum Error {
     #[cfg(feature = "hash")]
     #[error("Unable to decode hex value.")]
     HexDecode,
+    #[cfg(feature = "random")]
+    #[error(transparent)]
+    RandomError(#[from] crate::random::RandomError)
 }
 
 impl From<Utf8Error> for Error {
