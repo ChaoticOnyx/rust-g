@@ -19,7 +19,7 @@
 #define rustg_rand_range_f32(low, high) text2num(RUSTG_CALL(RUST_G, "rand_range_f32")(istext(low) ? low : num2text(low), istext(high) ? high : num2text(high)))
 
 /// Returns a bool with a probability p of being true.
-#define rustg_rand_bool(p) ext2num(RUSTG_CALL(RUST_G, "rand_bool")(istext(p) ? p : num2text(p)))
+#define rustg_rand_bool(p) text2num(RUSTG_CALL(RUST_G, "rand_bool")(istext(p) ? p : num2text(p)))
 
 /// Returns a bool with a probability of numerator/denominator of being true. I.e. gen_ratio(2, 3) has chance of 2 in 3, or about 67%, of returning true.
 /// If numerator == denominator, then the returned value is guaranteed to be true. If numerator == 0, then the returned value is guaranteed to be false.

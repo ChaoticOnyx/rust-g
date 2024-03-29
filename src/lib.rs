@@ -32,6 +32,8 @@ pub mod log;
 pub mod noise_gen;
 #[cfg(feature = "pathfinder")]
 pub mod pathfinder;
+#[cfg(feature = "prometheus")]
+pub mod prometheus;
 mod random;
 #[cfg(feature = "redis_pubsub")]
 pub mod redis_pubsub;

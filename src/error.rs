@@ -63,7 +63,7 @@ pub enum Error {
     HexDecode,
     #[cfg(feature = "random")]
     #[error(transparent)]
-    RandomError(#[from] crate::random::RandomError)
+    RandomError(#[from] crate::random::RandomError),
 }
 
 impl From<Utf8Error> for Error {
