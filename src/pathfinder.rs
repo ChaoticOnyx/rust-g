@@ -1,7 +1,9 @@
-use num_integer::sqrt;
 use pathfinding::prelude::astar;
 use serde::{Deserialize, Serialize};
-use std::{collections::BTreeMap, hash::Hash};
+use std::{
+    collections::{BTreeMap, HashMap},
+    hash::Hash,
+};
 use thiserror::Error;
 
 #[derive(
@@ -59,7 +61,7 @@ fn remove_node(id: &NodeId) {
     unsafe { nodes_mut().remove(id) };
 }
 
-#[derive(Serialize, Deserialize, Default, Clone, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone, Eq, Hash, Ord, PartialEq, PartialOrd)]
 struct Node {
     position: NodePosition,
     mask: usize,
@@ -67,7 +69,12 @@ struct Node {
 }
 
 impl Node {
-    fn successors(&self, pass_bit: usize, deny_bit: usize) -> Vec<(Node, usize)> {
+    fn successors(
+        &self,
+        pass_bit: usize,
+        deny_bit: usize,
+        costs: &HashMap<usize, isize>,
+    ) -> Vec<(Node, isize)> {
         let pos = &self.position;
         let mut neighbours = Vec::with_capacity(4 + self.links.len());
 
@@ -104,19 +111,30 @@ impl Node {
                     return None;
                 }
 
-                let dst = self.distance(&node);
+                let mut cost = 1;
 
-                Some((node.clone(), dst))
+                cost += isize::max(0, node.cost(costs));
+
+                Some((node.clone(), cost))
             })
             .collect()
     }
 
-    fn distance(&self, other: &Self) -> usize {
-        sqrt(
-            ((self.position.x as isize - other.position.x as isize).pow(2)
-                + (self.position.y as isize - other.position.y as isize).pow(2))
-                as usize,
-        )
+    fn cost(&self, costs: &HashMap<usize, isize>) -> isize {
+        let mut result = 0;
+
+        for (bit, cost) in costs {
+            if (self.mask & bit) != 0 {
+                result += cost
+            }
+        }
+
+        result
+    }
+
+    fn distance(&self, other: &Self) -> isize {
+        (self.position.x.abs_diff(other.position.x) + self.position.y.abs_diff(other.position.y))
+            as isize
     }
 }
 
@@ -164,7 +182,7 @@ enum AstarError {
     NoPath,
 }
 
-byond_fn!(fn generate_path_astar(start_node_pos, goal_node_pos, pass_bit, deny_bit) {
+byond_fn!(fn generate_path_astar(start_node_pos, goal_node_pos, pass_bit, deny_bit, costs) {
     let start_node_pos = match serde_json::from_str::<NodePosition>(start_node_pos) {
         Err(err) => return Some(format!("{err}")),
         Ok(v) => v
@@ -185,7 +203,12 @@ byond_fn!(fn generate_path_astar(start_node_pos, goal_node_pos, pass_bit, deny_b
         Ok(v) => v
     };
 
-    match generate_path(start_node_pos, goal_node_pos, pass_bit, deny_bit) {
+    let costs: HashMap<usize, isize> = match serde_json::from_str(costs) {
+        Err(err) => return Some(format!("{err}")),
+        Ok(v) => v,
+    };
+
+    match generate_path(start_node_pos, goal_node_pos, pass_bit, deny_bit, costs) {
         Ok(vector) => Some(match serde_json::to_string(&vector) {
             Ok(s) => s,
             Err(_) => "Cannot serialize path".to_string(),
@@ -200,6 +223,7 @@ fn generate_path(
     goal_node_pos: NodePosition,
     pass_bit: usize,
     deny_bit: usize,
+    costs: HashMap<usize, isize>,
 ) -> Result<Vec<NodePosition>, AstarError> {
     let start_node = match get_node(start_node_pos) {
         Some(node) => node,
@@ -215,21 +239,18 @@ fn generate_path(
         return Err(AstarError::NoPath);
     }
 
-    // Compute the shortest path between start node and goal node using A*
     let path = astar(
         &start_node,
-        |node| node.successors(pass_bit, deny_bit),
+        |node| node.successors(pass_bit, deny_bit, &costs),
         |node| node.distance(&goal_node),
         |node| node.position == goal_node.position,
     );
 
-    // Extract a vector of node container from the path variable. Errors if no path was found
     let path = match path {
         None => return Err(AstarError::NoPath),
         Some(path) => path.0,
     };
 
-    // Map every nodecontainer to the unique id of its node, so it can be sent to byond
     Ok(path
         .into_iter()
         .map(|node| node.position)
@@ -283,6 +304,7 @@ mod tests {
             NodePosition::new(4, 0, 0),
             NODE_TURF_BIT,
             NODE_SPACE_BIT,
+            HashMap::new(),
         );
 
         assert_eq!(path, Err(AstarError::NoPath));
@@ -292,6 +314,7 @@ mod tests {
             NodePosition::new(4, 0, 0),
             NODE_TURF_BIT | NODE_SPACE_BIT,
             0,
+            HashMap::new(),
         );
 
         assert_eq!(
@@ -342,6 +365,30 @@ mod tests {
             NodePosition::new(4, 0, 0),
             NODE_TURF_BIT,
             NODE_SPACE_BIT,
+            HashMap::new(),
+        );
+
+        assert_eq!(
+            path,
+            Ok(vec![
+                NodePosition::new(4, 0, 0),
+                NodePosition::new(4, 1, 0),
+                NodePosition::new(3, 1, 0),
+                NodePosition::new(2, 1, 0),
+                NodePosition::new(1, 1, 0),
+                NodePosition::new(0, 1, 0),
+                NodePosition::new(0, 0, 0),
+            ])
+        );
+
+        // Costs test
+
+        let path = generate_path(
+            NodePosition::new(0, 0, 0),
+            NodePosition::new(4, 0, 0),
+            NODE_TURF_BIT | NODE_SPACE_BIT,
+            0,
+            HashMap::from([(NODE_SPACE_BIT, 1), (NODE_TURF_BIT, -1)]),
         );
 
         assert_eq!(
@@ -401,6 +448,7 @@ mod tests {
             NodePosition::new(0, 4, 0),
             NODE_TURF_BIT,
             NODE_SPACE_BIT,
+            HashMap::new(),
         );
 
         assert_eq!(

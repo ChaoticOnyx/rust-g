@@ -10,5 +10,5 @@
 /// Remove the node with node position.
 #define rustg_remove_node_astar(node_pos) RUSTG_CALL(RUST_G, "remove_node_astar")(node_pos)
 
-/// Compute the shortest path between start_node and goal_node using A*. Heuristic used is simple geometric distance
-#define rustg_generate_path_astar(strat_node_pos, goal_node_pos, pass_bit, deny_bit) RUSTG_CALL(RUST_G, "generate_path_astar")(strat_node_pos, goal_node_pos, pass_bit, deny_bit)
+/// Compute the shortest path between start_node and goal_node using A*.
+#define rustg_generate_path_astar(strat_node_pos, goal_node_pos, pass_bit, deny_bit, costs) RUSTG_CALL(RUST_G, "generate_path_astar")(strat_node_pos, goal_node_pos, istext(pass_bit) ? pass_bit : num2text(pass_bit), istext(deny_bit) ? deny_bit : num2text(deny_bit), costs)
