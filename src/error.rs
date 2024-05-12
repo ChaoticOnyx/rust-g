@@ -64,6 +64,11 @@ pub enum Error {
     #[cfg(feature = "random")]
     #[error(transparent)]
     RandomError(#[from] crate::random::RandomError),
+    #[cfg(feature = "iconforge")]
+    #[error("IconForge error: {0}")]
+    IconForge(String),
+    #[error("Panic during function execution: {0}")]
+    Panic(String),
 }
 
 impl From<Utf8Error> for Error {
