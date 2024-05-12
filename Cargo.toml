@@ -87,6 +87,7 @@ default = [
     "toml",
     "url",
     "random",
+    "pathfinder",
 ]
 
 all = [
@@ -111,7 +112,7 @@ all = [
     "redis_reliablequeue",
     "unzip",
     "worleynoise",
-    "prometheus"
+    "prometheus",
 ]
 
 # default features
