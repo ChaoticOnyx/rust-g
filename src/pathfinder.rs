@@ -250,7 +250,7 @@ mod tests {
             Node {
                 position: NodePosition::new(0, 0, 0),
                 mask: NODE_TURF_BIT,
-                ..Default::default()
+                links: vec![NodePosition::new(0, 0, 1)],
             },
             Node {
                 position: NodePosition::new(1, 0, 0),
@@ -353,6 +353,65 @@ mod tests {
                 NodePosition::new(2, 1, 0),
                 NodePosition::new(1, 1, 0),
                 NodePosition::new(0, 1, 0),
+                NodePosition::new(0, 0, 0),
+            ])
+        );
+
+        // Links tests
+
+        let nodes = vec![
+            Node {
+                position: NodePosition::new(0, 0, 1),
+                mask: NODE_TURF_BIT,
+                links: vec![NodePosition::new(0, 0, 0)],
+            },
+            Node {
+                position: NodePosition::new(0, 1, 1),
+                mask: NODE_TURF_BIT,
+                ..Default::default()
+            },
+            Node {
+                position: NodePosition::new(0, 2, 1),
+                mask: NODE_TURF_BIT,
+                ..Default::default()
+            },
+            Node {
+                position: NodePosition::new(0, 3, 1),
+                mask: NODE_TURF_BIT,
+                ..Default::default()
+            },
+            Node {
+                position: NodePosition::new(0, 4, 1),
+                mask: NODE_TURF_BIT,
+                links: vec![NodePosition::new(0, 4, 0)],
+            },
+            Node {
+                position: NodePosition::new(0, 4, 0),
+                mask: NODE_TURF_BIT,
+                links: vec![NodePosition::new(0, 4, 1)],
+            },
+        ];
+
+        for node in nodes {
+            update_node(node.position, node);
+        }
+
+        let path = generate_path(
+            NodePosition::new(0, 0, 0),
+            NodePosition::new(0, 4, 0),
+            NODE_TURF_BIT,
+            NODE_SPACE_BIT,
+        );
+
+        assert_eq!(
+            path,
+            Ok(vec![
+                NodePosition::new(0, 4, 0),
+                NodePosition::new(0, 4, 1),
+                NodePosition::new(0, 3, 1),
+                NodePosition::new(0, 2, 1),
+                NodePosition::new(0, 1, 1),
+                NodePosition::new(0, 0, 1),
                 NodePosition::new(0, 0, 0),
             ])
         );
