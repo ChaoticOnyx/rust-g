@@ -6,6 +6,8 @@ use std::{
 };
 use thiserror::Error;
 
+const DISTANCE_MULTIPLIER: usize = 100;
+
 #[derive(
     Serialize, Deserialize, Default, Debug, Clone, Copy, Eq, Hash, Ord, PartialEq, PartialOrd,
 )]
@@ -111,7 +113,7 @@ impl Node {
                     return None;
                 }
 
-                let mut cost = 1;
+                let mut cost = DISTANCE_MULTIPLIER as isize;
 
                 cost += isize::max(0, node.cost(costs));
 
@@ -133,8 +135,11 @@ impl Node {
     }
 
     fn distance(&self, other: &Self) -> isize {
-        (self.position.x.abs_diff(other.position.x) + self.position.y.abs_diff(other.position.y))
-            as isize
+        let distance = self.position.x.abs_diff(other.position.x)
+            + self.position.y.abs_diff(other.position.y)
+            + self.position.z.abs_diff(other.position.z);
+
+        (distance * DISTANCE_MULTIPLIER) as isize
     }
 }
 
@@ -203,9 +208,13 @@ byond_fn!(fn generate_path_astar(start_node_pos, goal_node_pos, pass_bit, deny_b
         Ok(v) => v
     };
 
-    let costs: HashMap<usize, isize> = match serde_json::from_str(costs) {
-        Err(err) => return Some(format!("{err}")),
-        Ok(v) => v,
+    let costs = if costs != "null" {
+        match serde_json::from_str(costs) {
+            Err(err) => return Some(format!("{err}")),
+            Ok(v) => v,
+        }
+    } else {
+        HashMap::new()
     };
 
     match generate_path(start_node_pos, goal_node_pos, pass_bit, deny_bit, costs) {
@@ -388,7 +397,7 @@ mod tests {
             NodePosition::new(4, 0, 0),
             NODE_TURF_BIT | NODE_SPACE_BIT,
             0,
-            HashMap::from([(NODE_SPACE_BIT, 1), (NODE_TURF_BIT, -1)]),
+            HashMap::from([(NODE_SPACE_BIT, 70), (NODE_TURF_BIT, -90)]),
         );
 
         assert_eq!(
