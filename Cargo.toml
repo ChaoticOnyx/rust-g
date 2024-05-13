@@ -91,6 +91,16 @@ default = [
     "pathfinder",
 ]
 
+onyx = [
+    "hash",
+    "batchnoise",
+    "worleynoise",
+    "pathfinder",
+    "prometheus",
+    "random",
+    "iconforge",
+]
+
 all = [
     "acreplace",
     "cellularnoise",
