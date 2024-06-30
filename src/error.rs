@@ -34,7 +34,7 @@ pub enum Error {
     #[cfg(feature = "png")]
     #[error(transparent)]
     ImageEncoding(#[from] EncodingError),
-    #[cfg(feature = "http")]
+    #[cfg(any(feature = "http", feature = "iconforge"))]
     #[error(transparent)]
     JsonSerialization(#[from] serde_json::Error),
     #[error(transparent)]
