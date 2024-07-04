@@ -44,6 +44,8 @@ pub mod random;
 pub mod redis_pubsub;
 #[cfg(feature = "redis_reliablequeue")]
 pub mod redis_reliablequeue;
+#[cfg(feature = "sdb")]
+pub mod sdb;
 #[cfg(feature = "sql")]
 pub mod sql;
 #[cfg(feature = "time")]
