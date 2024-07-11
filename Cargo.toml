@@ -47,6 +47,7 @@ redis = { version = "0.24", optional = true }
 reqwest = { version = "0.11", optional = true, default-features = false, features = [
     "blocking",
     "rustls-tls",
+    "json",
 ] }
 serde = { version = "1.0", optional = true, features = ["derive"] }
 serde_json = { version = "1.0", optional = true }
@@ -73,6 +74,7 @@ tracy_full = { version = "1.7.1", optional = true }
 config = { version = "0.14.0", optional = true }
 glob = { version = "0.3.1", optional = true }
 surrealdb = { version = "1.4.2", features = ["kv-rocksdb"], optional = true }
+libc = { version = "0.2.155", optional = true }
 
 [features]
 default = ["onyx"]
@@ -93,6 +95,7 @@ onyx = [
     "json",
     "toml",
     "sdb",
+    "watchdog",
 ]
 
 stonekeep = ["dmi", "sql", "http", "noise", "git", "log", "cfg"]
@@ -122,6 +125,8 @@ all = [
     "worleynoise",
     "prometheus",
     "cfg",
+    "sdb",
+    "watchdog",
 ]
 
 # default features
@@ -174,6 +179,7 @@ worleynoise = ["rand", "rayon"]
 prometheus = ["prometheus-client", "tiny_http", "tokio"]
 cfg = ["config", "glob", "serde_json"]
 sdb = ["surrealdb", "tokio", "serde_json"]
+watchdog = ["libc", "reqwest"]
 
 # Use the native tls stack for the mysql db
 native_tls = ["mysql/default"]

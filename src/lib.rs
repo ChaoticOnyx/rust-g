@@ -56,6 +56,8 @@ pub mod toml;
 pub mod unzip;
 #[cfg(feature = "url")]
 pub mod url;
+#[cfg(feature = "watchdog")]
+pub mod watchdog;
 #[cfg(feature = "worleynoise")]
 pub mod worleynoise;
 
